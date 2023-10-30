@@ -20,18 +20,19 @@ function ButtonSelectGroup({ name, items, activeItem, onChange, className }) {
     getActiveItem(items, activeItem)
   );
 
-  const handleSelectItem = (value) => {
-    setSelectedValue(value);
-    onChange({ name, value });
+  const handleSelectItem = (index) => {
+    const item = items[index];
+    setSelectedValue(item.value);
+    onChange({ name, value: item.value, advanceValues: item.advanceValues });
   };
 
   return (
     items?.length > 0 && (
       <div className={clsx("button-select-group-container", className)}>
-        {items.map(({ label, value }) => (
+        {items.map(({ label, value }, index) => (
           <Button
             key={value}
-            onClick={() => handleSelectItem(value)}
+            onClick={() => handleSelectItem(index)}
             appearance={selectedValue === value ? "primary" : "default"}
             className="w-100"
           >

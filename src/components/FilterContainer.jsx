@@ -1,140 +1,54 @@
-import React, { useState } from "react";
-import { Button, IconButton, Panel, PanelGroup } from "rsuite";
+import React from "react";
+import { IconButton, Panel, PanelGroup } from "rsuite";
 import ButtonSelectGroup from "./common/ButtonSelectGroup";
 import RangeSlider from "./common/RangeSlider";
 import clsx from "clsx";
 import SearchIcon from "@rsuite/icons/Search";
 import CloseIcon from "@rsuite/icons/Close";
+import filterSchema from "../schema/filterSchema";
+import { useDispatch } from "react-redux";
+import {
+  selectFilter,
+  selectFilters,
+  setSelectedFilters,
+} from "../redux/catalog/catalogSlice";
 
 function renderPanelTitle(text) {
   return <span className="fw-500">{text}</span>;
 }
 
-export const filterData = {
-  category: {
-    filterName: "category",
-    items: [
-      {
-        label: "Beginer Drone",
-        value: "beginer_drone",
-      },
-      {
-        label: "Best Seller",
-        value: "best_seller",
-      },
-      {
-        label: "Long Range",
-        value: "long_range",
-      },
-      {
-        label: "Mini Drone",
-        value: "mini_drone",
-      },
-    ],
-  },
-  rating: {
-    filterName: "rating",
-    items: [
-      {
-        label: "1",
-        value: 1,
-      },
-      {
-        label: "2",
-        value: 2,
-      },
-      {
-        label: "3",
-        value: 3,
-      },
-      {
-        label: "4",
-        value: 4,
-      },
-      {
-        label: "5",
-        value: 5,
-      },
-    ],
-  },
-  cameraResolution: {
-    filterName: "cameraResolution",
-    items: [
-      {
-        label: "720p",
-        value: "720p",
-      },
-      {
-        label: "1080p",
-        value: "1080p",
-      },
-      {
-        label: "4K",
-        value: "4K",
-      },
-      {
-        label: "8K",
-        value: "8K",
-      },
-    ],
-  },
-  advancedFeatures: {
-    filterName: "advancedFeatures",
-    items: [
-      {
-        label: "GPS",
-        value: "gps",
-      },
-      {
-        label: "Foldable",
-        value: "foldable",
-      },
-
-      {
-        label: "Sensors",
-        value: "sensors",
-      },
-    ],
-  },
-  price: {
-    filterName: "price",
-    rule: {
-      min: 0,
-      max: 5000,
-    },
-  },
-  sortBy: {
-    filterName: "sortBy",
-    items: [
-      {
-        label: "Most popular",
-        value: "gps",
-      },
-      {
-        label: "Lowest price",
-        value: "foldable",
-      },
-
-      {
-        label: "Highest price",
-        value: "sensors",
-      },
-      {
-        label: "Light weight",
-        value: "sensors",
-      },
-    ],
-  },
-};
+const filter = { ...filterSchema };
 
 function FilterContainer({ className, onClose = () => {} }) {
-  const [filter, setFilter] = useState(filterData);
+  const dispatch = useDispatch();
 
-  const handleChangeFilter = ({ value, name }) => {
-    console.log("🚀 DX ~ value:", value, name);
+  const handleChangeFilter = ({ value, name, advanceValues }) => {
+    if (advanceValues?.length > 0) {
+      dispatch(selectFilters(advanceValues));
+    } else {
+      dispatch(
+        selectFilter({
+          name,
+          value,
+        })
+      );
+    }
   };
 
-  const handleClearFilter = () => {};
+  const handleChangePriceFilter = (filter) => {
+    if (filter.name) {
+      const advanceValues = [
+        { name: `${filter.name}_gte`, value: filter.value.min },
+        { name: `${filter.name}_lte`, value: filter.value.max },
+      ];
+
+      handleChangeFilter({ advanceValues });
+    }
+  };
+
+  const clearFilters = () => {
+    dispatch(setSelectedFilters({}));
+  };
 
   return (
     <div className={clsx("filter-container shadow-sm", className)}>
@@ -153,7 +67,7 @@ function FilterContainer({ className, onClose = () => {} }) {
             name={filter.price.filterName}
             min={filter.price.rule.min}
             max={filter.price.rule.max}
-            onChange={handleChangeFilter}
+            onChange={handleChangePriceFilter}
           />
         </Panel>
         <Panel header={renderPanelTitle("Rating Count")} defaultExpanded>
@@ -181,7 +95,7 @@ function FilterContainer({ className, onClose = () => {} }) {
       </PanelGroup>
       <Panel>
         <div className="d-flex justify-content-between">
-          <IconButton icon={<CloseIcon />} onClick={handleClearFilter}>
+          <IconButton icon={<CloseIcon />} onClick={clearFilters}>
             Clear
           </IconButton>
           <IconButton

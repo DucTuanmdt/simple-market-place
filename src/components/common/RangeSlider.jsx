@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import {
   InputGroup,
   InputNumber,
   RangeSlider as RangeSliderInput,
 } from "rsuite";
+import { debounce } from "lodash-es";
 
-const getInitialValue = (name, min, max, defaultValues) => {
+const getInitialValue = (defaultValues, min, max) => {
   let minValue = min;
   let maxValue = max;
 
@@ -24,9 +25,19 @@ const getInitialValue = (name, min, max, defaultValues) => {
   return [minValue, maxValue];
 };
 
+const DELAY_TIME = 500;
 function RangeSlider({ name, min, max, defaultValues, onChange }) {
   const [value, setValue] = useState(() =>
     getInitialValue(defaultValues, min, max)
+  );
+
+  const delayEmit = useMemo(
+    () =>
+      debounce((values) => {
+        emitChanges(values);
+      }, DELAY_TIME),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
   const emitChanges = (values) => {
@@ -41,7 +52,7 @@ function RangeSlider({ name, min, max, defaultValues, onChange }) {
 
   const handleChange = (values) => {
     setValue(values);
-    emitChanges(values);
+    delayEmit(values);
   };
 
   const handleChangeStartValue = (nextValue) => {
@@ -52,7 +63,7 @@ function RangeSlider({ name, min, max, defaultValues, onChange }) {
 
     const newValues = [+nextValue, end];
     setValue(newValues);
-    emitChanges(newValues);
+    delayEmit(newValues);
   };
 
   const handleChangeEndValue = (nextValue) => {
@@ -63,7 +74,7 @@ function RangeSlider({ name, min, max, defaultValues, onChange }) {
 
     const newValues = [start, +nextValue];
     setValue(newValues);
-    emitChanges(newValues);
+    delayEmit(newValues);
   };
 
   return (
@@ -73,6 +84,8 @@ function RangeSlider({ name, min, max, defaultValues, onChange }) {
         value={value}
         onChange={handleChange}
         className="mt-2 mb-4 mx-1"
+        min={min}
+        max={max}
       />
       <InputGroup>
         <InputNumber

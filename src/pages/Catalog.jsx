@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Col,
@@ -7,24 +7,121 @@ import {
   IconButton,
   Input,
   InputGroup,
+  Loader,
+  Message,
+  Placeholder,
   Row,
   Sidenav,
 } from "rsuite";
+import { debounce } from "lodash-es";
+
 import { MdOutlineFilterAlt } from "react-icons/md";
 import SearchIcon from "@rsuite/icons/Search";
 
-import drones from "../mock/drones";
 import ProductCard from "../components/ProductCard";
-import FilterContainer, { filterData } from "../components/FilterContainer";
+import FilterContainer from "../components/FilterContainer";
 import useToggle from "../hooks/useToggle";
+import { useDispatch, useSelector } from "react-redux";
+import filterSchema from "../schema/filterSchema";
+import { loadMoreCatalog, searchCatalog } from "../redux/catalog/catalogThunk";
+import {
+  resetCatalog,
+  selectFilter,
+  selectFilters,
+} from "../redux/catalog/catalogSlice";
+import useMessage from "../hooks/useMessage";
 
-const catalogList = ["All Brand", "MIG Turbo", "Mini Drone", "Dji Drone"];
+const SEARCH_DELAY_TIME = 400;
+
+const filterData = { ...filterSchema };
+
 function Catalog() {
-  const [catalog, setCatalog] = useState(catalogList[0]);
-  const [droneList, setDroneList] = useState(drones);
+  const {
+    catalogList: droneList,
+    selectedFilters,
+    error,
+    isLoading,
+    isLoadMore,
+    hasMoreResult,
+  } = useSelector((state) => state.catalog);
+  const dispatch = useDispatch();
+
+  const [keyword, setKeyword] = useState("");
+
   const [sortBy, setSortBy] = useState(filterData.sortBy.items[0]);
 
   const [showFilterDrawer, toggleFilterDrawer] = useToggle(false);
+
+  const { showToast } = useMessage();
+  const delaySearchByKeyword = useMemo(
+    () =>
+      debounce((value) => {
+        dispatch(
+          selectFilter({
+            name: "keyword",
+            value: value,
+          })
+        );
+      }, SEARCH_DELAY_TIME),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
+  );
+
+  const handleInputSearchChange = (value) => {
+    setKeyword(value);
+    delaySearchByKeyword(value);
+  };
+
+  const handleChangeSort = (item) => {
+    setSortBy(item);
+    const filters = [
+      {
+        name: "sortBy",
+        value: item.value,
+      },
+    ];
+
+    if (item.order) {
+      filters.push({
+        name: "order",
+        value: item.order,
+      });
+    }
+
+    dispatch(selectFilters(filters));
+  };
+
+  const handleViewMore = () => {
+    dispatch(loadMoreCatalog());
+  };
+
+  useEffect(() => {
+    if (error) {
+      showToast(error, { type: "error" });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error]);
+
+  useEffect(() => {
+    dispatch(searchCatalog());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFilters]);
+
+  useEffect(() => {
+    // refresh page after every 60s
+    const intervalId = setInterval(() => {
+      // show notification
+      showToast("Refresh data!!!");
+
+      // set selected filters to be empty
+      dispatch(resetCatalog());
+    }, 60000);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const renderMobileDrawer = () => {
     return (
@@ -52,6 +149,55 @@ function Catalog() {
     );
   };
 
+  const renderResults = () => {
+    // loading
+    if (isLoading) {
+      return (
+        <div className="my-4">
+          <Placeholder.Paragraph rows={8} />
+          <Loader content="loading..." vertical />
+        </div>
+      );
+    }
+
+    // no result
+    if (droneList.length < 1) {
+      return (
+        <Message
+          showIcon
+          type="info"
+          header="No Results Found"
+          className="mt-4 mb-2"
+        >
+          Sorry, no results match your selected search/filter criteria. Please
+          try again with different criteria.
+        </Message>
+      );
+    }
+
+    return (
+      <>
+        <div className="card-list-container">
+          {droneList.map((item) => (
+            <ProductCard key={item.id} {...item} />
+          ))}
+        </div>
+        {hasMoreResult && (
+          <div className="d-flex justify-content-center mt-5 mb-2">
+            <Button
+              appearance="primary"
+              disabled={isLoadMore}
+              loading={isLoadMore}
+              onClick={handleViewMore}
+            >
+              View more
+            </Button>
+          </div>
+        )}
+      </>
+    );
+  };
+
   return (
     <div className="catalog-container container my-4">
       <Row>
@@ -64,7 +210,11 @@ function Catalog() {
               </div>
 
               <InputGroup className="search-box">
-                <Input placeholder="Search..." />
+                <Input
+                  placeholder="Search..."
+                  value={keyword}
+                  onChange={handleInputSearchChange}
+                />
                 <InputGroup.Button>
                   <SearchIcon />
                 </InputGroup.Button>
@@ -72,7 +222,9 @@ function Catalog() {
             </div>
 
             <div className="d-flex align-items-center justify-content-between mt-3">
-              <span className="fw-500">10 products</span>
+              <span className="fw-500">
+                {isLoading ? "..." : `${droneList.length} results`}
+              </span>
               <div>
                 <IconButton
                   size="sm"
@@ -92,8 +244,8 @@ function Catalog() {
                 >
                   {filterData.sortBy.items.map((item) => (
                     <Dropdown.Item
-                      key={item.value}
-                      onClick={() => setSortBy(item)}
+                      key={item.label}
+                      onClick={() => handleChangeSort(item)}
                     >
                       {item.label}
                     </Dropdown.Item>
@@ -102,15 +254,7 @@ function Catalog() {
               </div>
             </div>
 
-            <div className="card-list-container">
-              {droneList.map((item) => (
-                <ProductCard key={item.id} {...item} />
-              ))}
-            </div>
-
-            <div className="d-flex justify-content-center mt-5 mb-2">
-              <Button appearance="primary">View more</Button>
-            </div>
+            {renderResults()}
           </div>
         </Col>
         <Col xs={24} lg={8} xl={6} className="d-none d-lg-block">
