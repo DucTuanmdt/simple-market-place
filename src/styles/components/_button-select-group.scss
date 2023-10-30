@@ -1,0 +1,18 @@
+.button-select-group-container {
+  padding: 8px;
+  border: 1px solid var(--bs-border-color);
+  border-radius: 6px;
+
+  // default is one row
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  &.two-col {
+    display: grid;
+    place-items: center;
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
