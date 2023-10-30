@@ -69,12 +69,12 @@ export const filterData = {
         value: "1080p",
       },
       {
-        label: "2K",
-        value: "2K",
-      },
-      {
         label: "4K",
         value: "4K",
+      },
+      {
+        label: "8K",
+        value: "8K",
       },
     ],
   },
