@@ -1,3 +1,4 @@
+import Footer from "./components/common/Footer";
 import NavigationBar from "./components/navigation/NavigationBar";
 import Catalog from "./pages/Catalog";
 
@@ -6,6 +7,7 @@ function App() {
     <main>
       <NavigationBar />
       <Catalog />
+      <Footer />
     </main>
   );
 }

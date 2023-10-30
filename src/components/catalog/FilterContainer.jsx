@@ -1,17 +1,17 @@
 import React from "react";
 import { IconButton, Panel, PanelGroup } from "rsuite";
-import ButtonSelectGroup from "./common/ButtonSelectGroup";
-import RangeSlider from "./common/RangeSlider";
+import ButtonSelectGroup from "../common/ButtonSelectGroup";
+import RangeSlider from "../common/RangeSlider";
 import clsx from "clsx";
 import SearchIcon from "@rsuite/icons/Search";
 import CloseIcon from "@rsuite/icons/Close";
-import filterSchema from "../schema/filterSchema";
+import filterSchema from "../../schema/filterSchema";
 import { useDispatch } from "react-redux";
 import {
   selectFilter,
   selectFilters,
   setSelectedFilters,
-} from "../redux/catalog/catalogSlice";
+} from "../../redux/catalog/catalogSlice";
 
 function renderPanelTitle(text) {
   return <span className="fw-500">{text}</span>;

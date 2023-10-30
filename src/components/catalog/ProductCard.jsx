@@ -1,9 +1,9 @@
 import React from "react";
 import { IconButton } from "rsuite";
 import { MdOutlineStar, MdFavoriteBorder, MdFavorite } from "react-icons/md";
-import useToggle from "../hooks/useToggle";
+import useToggle from "../../hooks/useToggle";
 import clsx from "clsx";
-import { formatCurrency } from "../utils/stringUtils";
+import { formatCurrency } from "../../utils/stringUtils";
 
 const getThumbnailUrl = (id) => {
   const TOTAL_IMAGE = 12;
@@ -14,7 +14,6 @@ const getThumbnailUrl = (id) => {
 
 function ProductCard({
   name,
-  id,
   thumbnail,
   price,
   rating,
@@ -27,7 +26,7 @@ function ProductCard({
   return (
     <div className={clsx("product-card-container", className)}>
       <div className="product-thumbnail">
-        <img src={getThumbnailUrl(thumbnail)} alt={name} />
+        <img src={getThumbnailUrl(thumbnail)} alt={name} loading="lazy" />
       </div>
       <div className="product-info shadow-sm">
         <p className="fw-500 mb-2">{name}</p>

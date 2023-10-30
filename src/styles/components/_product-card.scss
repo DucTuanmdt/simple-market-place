@@ -38,6 +38,11 @@
   .heart-icon {
     color: #e74c3c;
   }
+
+  &.place-holder {
+    overflow: hidden;
+    border-radius: 16px;
+  }
 }
 
 .card-list-container {

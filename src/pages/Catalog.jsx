@@ -7,9 +7,7 @@ import {
   IconButton,
   Input,
   InputGroup,
-  Loader,
   Message,
-  Placeholder,
   Row,
   Sidenav,
 } from "rsuite";
@@ -18,8 +16,8 @@ import { debounce } from "lodash-es";
 import { MdOutlineFilterAlt } from "react-icons/md";
 import SearchIcon from "@rsuite/icons/Search";
 
-import ProductCard from "../components/ProductCard";
-import FilterContainer from "../components/FilterContainer";
+import ProductCard from "../components/catalog/ProductCard";
+import FilterContainer from "../components/catalog/FilterContainer";
 import useToggle from "../hooks/useToggle";
 import { useDispatch, useSelector } from "react-redux";
 import filterSchema from "../schema/filterSchema";
@@ -30,6 +28,7 @@ import {
   selectFilters,
 } from "../redux/catalog/catalogSlice";
 import useMessage from "../hooks/useMessage";
+import { ProductPlaceholderList } from "../components/placeholder/ProductCardPlaceholder";
 
 const SEARCH_DELAY_TIME = 400;
 
@@ -111,7 +110,7 @@ function Catalog() {
     // refresh page after every 60s
     const intervalId = setInterval(() => {
       // show notification
-      showToast("Refresh data!!!");
+      showToast("Refreshed data!!!");
 
       // set selected filters to be empty
       dispatch(resetCatalog());
@@ -153,9 +152,8 @@ function Catalog() {
     // loading
     if (isLoading) {
       return (
-        <div className="my-4">
-          <Placeholder.Paragraph rows={8} />
-          <Loader content="loading..." vertical />
+        <div className="card-list-container">
+          <ProductPlaceholderList count={12} />
         </div>
       );
     }
